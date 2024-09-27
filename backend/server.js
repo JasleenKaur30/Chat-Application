@@ -1,36 +1,30 @@
+import path from "path";
 import express from "express";
 import dotenv from "dotenv";
-import authRoutes from './routes/auth.routes.js';
-import messageRoutes from './routes/message.routes.js';
-import userRoutes from './routes/user.routes.js';
-import connectToMongoDB from "./db/connectToMongoDB.js";
 import cookieParser from "cookie-parser";
+
+import authRoutes from "./routes/auth.routes.js";
+import messageRoutes from "./routes/message.routes.js";
+import userRoutes from "./routes/user.routes.js";
+
+import connectToMongoDB from "./db/connectToMongoDB.js";
+import { app, server } from "./socket/socket.js";
 
 dotenv.config();
 
-const app = express();
+const __dirname = path.resolve();
+// PORT should be assigned after calling dotenv.config() because we need to access the env variables. Didn't realize while recording the video. Sorry for the confusion.
 const PORT = process.env.PORT || 5000;
 
-app.use(express.json()); // Parse incoming JSON requests
+app.use(express.json()); // to parse the incoming requests with JSON payloads (from req.body)
 app.use(cookieParser());
 
-// Use the authRoutes for all routes starting with '/api/auth'
-app.use('/api/auth', authRoutes);
-app.use('/api/messages', messageRoutes);
-app.use('/api/users', userRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/messages", messageRoutes);
+app.use("/api/users", userRoutes);
 
-const startServer = async () => {
-  try {
-    await connectToMongoDB();
-    console.log('Connected to MongoDB');
 
-    app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
-    });
-  } catch (error) {
-    console.error('Failed to connect to MongoDB', error);
-    process.exit(1); // Exit the process with failure
-  }
-};
-
-startServer();
+server.listen(PORT, () => {
+	connectToMongoDB();
+	console.log(`Server Running on port ${PORT}`);
+});
